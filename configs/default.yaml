@@ -1,0 +1,206 @@
+# =============================================================================
+# HITGNN — Default Configuration
+# Hierarchical Temporal Event Graph Neural Network
+# for Missingness-Aware Sepsis Mortality Prediction
+#
+# Research demonstration using synthetic patient data.
+# Not intended for clinical diagnosis, treatment, or decision-making.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# General
+# ---------------------------------------------------------------------------
+seed: 42
+device: "auto"  # "auto" → CUDA if available, else CPU
+
+# ---------------------------------------------------------------------------
+# Synthetic Data Generation
+# ---------------------------------------------------------------------------
+synthetic:
+  n_patients: 500
+  mortality_prevalence: 0.20
+  # Observation window: each patient has events in [t0 - window_hours, t0]
+  # where t0 is the Sepsis-3 recognition time.
+  min_window_hours: 6
+  max_window_hours: 72
+  # Simulation assumption: severity influences measurement frequency.
+  # This is documented and does NOT make mortality deterministically
+  # recoverable from measurement frequency alone.
+  severity_frequency_coupling: 0.5  # 0 = no coupling, 1 = strong coupling
+
+# ---------------------------------------------------------------------------
+# Biomarker Panel (fixed vocabulary for missingness encoder)
+# ---------------------------------------------------------------------------
+biomarkers:
+  - PCT
+  - CRP
+  - Lactate
+  - WBC
+  - Creatinine
+  - Bilirubin
+  - Platelets
+
+# ---------------------------------------------------------------------------
+# Temporal Binning
+# ---------------------------------------------------------------------------
+temporal:
+  n_bins: 6                  # Number of temporal bins for missingness encoder
+  bin_width_hours: null      # If null, bins are computed from patient window
+
+# ---------------------------------------------------------------------------
+# Graph Construction
+# ---------------------------------------------------------------------------
+graph:
+  # Edge types (all four used in homogeneous Data with edge_type attributes)
+  edge_types:
+    - TEMPORAL_ADJACENCY
+    - SAME_CONCEPT_RECURRENCE
+    - SEMANTIC
+    - CROSS_MODALITY
+  cross_modality_window_minutes: 30
+  # Node feature dimensions
+  concept_embedding_dim: 32
+  node_feature_dim: 64       # Final node feature dimension after projection
+
+# ---------------------------------------------------------------------------
+# Missingness-Aware Biomarker Encoder
+#
+# Input per biomarker per bin: [x*mask, mask, log(1+delta_t), never_observed]
+# No population mean imputation. Missingness-aware modeling only.
+# ---------------------------------------------------------------------------
+missingness_encoder:
+  input_dim: 4               # [x*mask, mask, log(1+delta_t), never_observed]
+  hidden_dim: 64
+  output_dim: 64
+  # Two-layer MLP: Linear(4,64) → ReLU → Linear(64, output_dim)
+  # Optional output activation (null = none, "relu", "tanh")
+  output_activation: null
+
+# ---------------------------------------------------------------------------
+# Temporal Edge-Aware GAT (TE-GAT)
+#
+# Attention logit:
+#   e_uv = LeakyReLU(a^T [W h_v || W h_u || phi(delta_t_uv)])
+# Relative time participates DIRECTLY in the attention logit.
+# ---------------------------------------------------------------------------
+te_gat:
+  hidden_dim: 64
+  n_heads: 4
+  n_layers: 3
+  leaky_relu_slope: 0.2
+  dropout: 0.3
+  residual: true
+  # Time encoding dimension (per-head)
+  time_encoding_dim: 16
+
+# ---------------------------------------------------------------------------
+# Hierarchical Pooling
+#   Stage 1: Type-level attention (per event category)
+#   Stage 2: Patient-level attention (across type summaries)
+# ---------------------------------------------------------------------------
+hierarchical_pool:
+  type_attention_dim: 64
+  patient_attention_dim: 128
+  event_types:
+    - LAB
+    - VITAL
+    - MEDICATION
+    - PROCEDURE
+    - DIAGNOSIS
+    - CLINICAL_CONCEPT
+  # Fusion MLP: [h_patient || z_miss] → fused representation
+  fusion_output_dim: 128
+
+# ---------------------------------------------------------------------------
+# Inductive Population Graph
+#
+# CRITICAL INDUCTIVE PROTOCOL:
+#   Train:      train → train edges
+#   Validation: val → train edges ONLY (training bank frozen)
+#   Test:       test → train edges ONLY (training bank frozen)
+#   NEVER:      val→val, test→test, labels in similarity, test labels in retrieval
+# ---------------------------------------------------------------------------
+population_graph:
+  k_neighbors: 10
+  lambda_embed: 0.7          # Weight for cosine(h_p, h_q) similarity
+  lambda_meta: 0.3           # Weight for metadata similarity
+  gnn_layers: 2
+  gnn_hidden_dim: 128
+
+# ---------------------------------------------------------------------------
+# Prediction Head
+#
+# DESIGN DECISION: outputs RAW LOGITS during training.
+#   Linear(128→64) → ReLU → Dropout → Linear(64→1) → raw logit
+#   Use BCEWithLogitsLoss(logit, label) for training.
+#   Apply sigmoid ONLY at inference/evaluation.
+# ---------------------------------------------------------------------------
+prediction_head:
+  hidden_dim: 64
+  dropout: 0.3
+
+# ---------------------------------------------------------------------------
+# Training
+# ---------------------------------------------------------------------------
+training:
+  batch_size: 32
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  epochs: 100
+  early_stopping_patience: 15
+  # Early stopping monitors validation AUPRC
+  early_stopping_metric: "auprc"
+  # Loss function
+  loss: "bce_with_logits"     # "bce_with_logits" or "focal"
+  # pos_weight: "auto" computes from class distribution
+  pos_weight: "auto"
+  # Focal loss parameters (used only if loss == "focal")
+  focal_alpha: 0.25
+  focal_gamma: 2.0
+  # LR scheduler
+  scheduler: "reduce_on_plateau"
+  scheduler_patience: 7
+  scheduler_factor: 0.5
+  # Data split (patient-level, must sum to 1.0)
+  split_ratios:
+    train: 0.70
+    val: 0.15
+    test: 0.15
+  # Checkpoint directory
+  checkpoint_dir: "outputs/checkpoints"
+
+# ---------------------------------------------------------------------------
+# Evaluation
+# ---------------------------------------------------------------------------
+evaluation:
+  metrics:
+    - auroc
+    - auprc
+    - accuracy
+    - sensitivity
+    - specificity
+    - precision
+    - f1
+    - brier_score
+  plots:
+    - roc_curve
+    - pr_curve
+    - confusion_matrix
+    - calibration_plot
+    - training_curves
+  output_dir: "outputs/figures"
+  metrics_dir: "outputs/metrics"
+
+# ---------------------------------------------------------------------------
+# Explainability
+#
+# All explanations are ASSOCIATIONAL attributions.
+# Never describe as causal explanation, MNAR robust, or biological pathway.
+# ---------------------------------------------------------------------------
+explainability:
+  # Level 1: Event attribution via Integrated Gradients
+  integrated_gradients_steps: 50
+  # Level 3: GNNExplainer
+  gnnexplainer_epochs: 200
+  gnnexplainer_lr: 0.01
+  output_dir: "outputs/explanations"

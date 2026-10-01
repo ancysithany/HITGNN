@@ -1,0 +1,14 @@
+- [x] Phase 1: Core setup
+- [x] Phase 2: Synthetic Cohort Generation
+- [x] Phase 3: Missingness Representation
+- [x] Phase 4: Temporal Event Graph Construction
+  - [x] Implemented `EventNormalizer`
+  - [x] Implemented `PatientGraphBuilder` logic for 4 edge types
+  - [x] Fixed constraints (no self-loops, exact edge deduplication, correct label isolation)
+  - [x] Added rigorous pytest tests for all Phase 4 constraints
+  - [x] Implemented `HITGNNPatientDataset` with `[Batch, 10]` metadata and `[Batch, K, n_bins, 4]` missingness input tensor
+  - [x] Generated `example_patient_graph.png` and passed `verify_phase4.py` checks
+- [ ] Phase 5: GNN & Missingness Models
+- [ ] Phase 6: Training Pipeline
+- [ ] Phase 7: Explainability
+- [ ] Phase 8: Streamlit UI

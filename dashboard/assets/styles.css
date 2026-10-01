@@ -1,0 +1,112 @@
+/* HITGNN Custom Dashboard Styles */
+
+/* Base Streamlit App Background */
+.stApp {
+    background-color: #0B0F17;
+    color: #F8FAFC;
+    font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+/* Sidebar Styling */
+.css-1d391kg, [data-testid="stSidebar"] {
+    background-color: #111827;
+    border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Sidebar Text */
+[data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+    color: #F8FAFC !important;
+}
+
+[data-testid="stSidebar"] label, [data-testid="stSidebar"] p {
+    color: #94A3B8;
+}
+
+/* Text Colors */
+h1, h2, h3, h4, h5, h6 {
+    color: #F8FAFC !important;
+}
+
+p, span, div {
+    color: #94A3B8;
+}
+
+strong, b {
+    color: #F8FAFC;
+}
+
+/* Metrics Styling */
+[data-testid="stMetricValue"] {
+    color: #6C8CFF;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+[data-testid="stMetricLabel"] {
+    color: #94A3B8;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+}
+
+/* Buttons */
+.stButton > button {
+    background-color: #6C8CFF;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.stButton > button:hover {
+    background-color: #5575e6;
+    color: white;
+}
+
+/* Selectbox */
+div[data-baseweb="select"] > div {
+    background-color: #151B28;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: #F8FAFC;
+}
+
+/* Tabs */
+[data-testid="stTabs"] button {
+    color: #94A3B8;
+    font-weight: 600;
+}
+
+[data-testid="stTabs"] button[aria-selected="true"] {
+    color: #6C8CFF;
+}
+
+/* Alerts / Info Boxes */
+.stAlert {
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+div[data-testid="stExpander"] {
+    background-color: #111827;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+}
+
+/* Horizontal Divider */
+hr {
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Dataframe header */
+th {
+    background-color: #111827 !important;
+    color: #F8FAFC !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+}
+td {
+    background-color: #0B0F17 !important;
+    color: #94A3B8 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+}

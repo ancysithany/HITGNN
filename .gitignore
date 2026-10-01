@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data (synthetic data is regenerated, not tracked)
+data/raw/*
+data/processed/*
+data/synthetic/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/synthetic/.gitkeep
+
+# Outputs
+outputs/checkpoints/*.pt
+outputs/checkpoints/*.pth
+outputs/figures/*.png
+outputs/figures/*.pdf
+outputs/metrics/*.json
+outputs/metrics/*.csv
+outputs/explanations/*
+!outputs/checkpoints/.gitkeep
+!outputs/figures/.gitkeep
+!outputs/metrics/.gitkeep
+!outputs/explanations/.gitkeep
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+wandb/
+runs/
